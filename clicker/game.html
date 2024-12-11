@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banana Clicker</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        img {
+            cursor: pointer;
+            width: 200px;
+            transition: transform 0.1s ease-out;
+        }
+        #progress-bar-container {
+            width: 80%;
+            height: 20px;
+            background-color: #ddd;
+            margin: 20px auto;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #76c7c0;
+            transition: width 0.1s linear;
+        }
+        #counter, #game-over {
+            font-size: 2rem;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Banana Clicker 🍌</h1>
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
+    <img src="banaan.png" alt="Banaan" id="banana">
+    <div id="counter">Clicks: 0</div>
+    <div id="game-over">Time's up! You clicked <span id="final-score"></span> times!</div>
+
+    <script>
+        let count = 0;
+        let timer = 60; // Timer in seconden
+        const banana = document.getElementById('banana');
+        const progressBar = document.getElementById('progress-bar');
+        const counter = document.getElementById('counter');
+        const gameOver = document.getElementById('game-over');
+        const finalScore = document.getElementById('final-score');
+
+        // Timer functie
+        function startGame() {
+            const interval = setInterval(() => {
+                timer--;
+                const progress = ((60 - timer) / 60) * 100;
+                progressBar.style.width = `${progress}%`;
+
+                if (timer <= 0) {
+                    clearInterval(interval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Klik logica
+        banana.addEventListener('click', () => {
+            if (timer > 0) {
+                count++;
+                banana.style.transform = "scale(0.9)";
+                setTimeout(() => banana.style.transform = "scale(1)", 100);
+            }
+        });
+
+        // Einde van het spel
+        function endGame() {
+            banana.style.display = "none";
+            gameOver.style.display = "block";
+            finalScore.textContent = count;
+        }
+
+        // Start het spel bij het laden van de pagina
+        startGame();
+    </script>
+</body>
+</html>

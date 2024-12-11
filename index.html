@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaan Met Die Banaan</title>
+    <link rel="icon" href="favicon.svg" type="image/x-icon">
+    <style>
+        @font-face {
+            font-family: 'AvenirNextRegular';
+            src: url('AvenirNext.ttc') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+            background-color: #ffcc00;
+            display: flex;
+            font-family: 'Avenir Next', sans-serif;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        #logo {
+            width: 400px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            border: none;
+            top: 100px;
+            padding: 20px 40px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 60px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #efefef;
+        }
+
+    </style>
+</head>
+<body>
+    <img id="logo" src="logo.svg" alt="Logo">
+    <button onclick="window.location.href='banaan.html'">Gaan!</button>
+</body>
+
+</html>

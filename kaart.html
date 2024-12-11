@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaan Met Die Banaan</title>
+    <link rel="icon" href="favicon.svg" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        @font-face {
+            font-family: 'AvenirNextRegular';
+            src: url('AvenirNext.ttc') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* Basisstijl */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Avenir Next', sans-serif;
+            background-color: #f5f5f5;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background-color: #ffcc00;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            align-items: center;
+        }
+
+        header img {
+            width: 25px;
+            height: 25px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            color: #000;
+        }
+
+        /* Container voor de kaart */
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        footer {
+            background-color: #000;
+            color: white;
+            text-align: center;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-top: auto;
+        }
+
+        /* Kaartstijl */
+        #map {
+            height: 100%;
+            width: 100%;
+            margin-top: 0;
+        }
+
+        /* Knop voor centreren (altijd zichtbaar boven de kaart) */
+        #centerButton {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            border: none;
+            padding: 20px 40px;
+            font-size: 18px;
+            border-radius: 60px;
+            display: none;
+            cursor: pointer;
+            z-index: 1000; /* Zorg ervoor dat de knop bovenop de kaart komt */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Slagschaduw */
+        }
+
+        #centerButton:hover {
+            background-color:#efefef;
+        }
+
+        /* Zorg ervoor dat alles mobiel-vriendelijk is */
+        @media (max-width: 360px) {
+            header img {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        /* Voeg de filter in CSS toe */
+        .leaflet-tile {
+            filter: brightness(5) contrast(150%);
+        }
+
+        /* Profielfoto stijl */
+        .profile-photo {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            top: -60px;  /* Pas aan afhankelijk van de gewenste positie */
+            left: -25px;  /* Pas aan afhankelijk van de gewenste positie */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="banaan.html" class="icon-wrapper" id="banaan-wrapper">
+            <img id="banaan-icon" src="banaan.svg" alt="" />
+        </a>
+        <a href="kaart.html" class="icon-wrapper active" id="kaart-wrapper">
+            <img id="kaart-icon" src="kaart-active.svg" alt="" />
+        </a>
+        <a href="scorebord.html" class="icon-wrapper" id="scoreboard-wrapper">
+            <img id="scoreboard-icon" src="scorebord.svg" alt="" />
+        </a>
+        <a href="instellingen.html" class="icon-wrapper" id="instellingen-wrapper">
+            <img id="instellingen-icon" src="instellingen.svg" alt="" />
+        </a>
+    </header>   
+
+    <div class="container">
+        <div id="map"></div> <!-- Dit is de container voor de kaart -->
+    </div>
+
+    <button id="centerButton" onclick="centerMap()">Centreren</button>
+
+    <footer>© 2024 Banaan App</footer>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Maak de kaart zonder een placeholder locatie
+        const map = L.map('map', {
+            zoomControl: false,  // Verwijder de zoomknoppen
+            minZoom: 10,  // Minimum zoomniveau
+            maxZoom: 18   // Maximum zoomniveau
+        }).setView([0, 0], 13); // Begin met een globale weergave op zoom 13
+
+        // Voeg de kaartlaag toe zonder filter in de JavaScript code
+        const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Iconen voor de speler, banaan-houder en banaan
+        const spelerIcon = L.icon({
+            iconUrl: 'speler.svg',
+            iconSize: [100, 100],  
+            iconAnchor: [50, 100],  // Verplaats het anker naar de onderkant van het icoon
+            popupAnchor: [0, -50],
+        });
+
+        const banaanIcon = L.icon({
+            iconUrl: 'speler-banaan.svg',
+            iconSize: [30, 30],  // Banaan is kleiner dan de speler
+            iconAnchor: [40, 110],  // Het anker van de banaan is in het midden van het icoon
+            popupAnchor: [0, -50],
+        });
+
+        const banaanHouderIcon = L.icon({
+            iconUrl: 'banaan-houder.svg',
+            iconSize: [100, 100],
+            iconAnchor: [50, 100],  // Verplaats het anker naar de onderkant van het icoon
+            popupAnchor: [0, -50],
+        });
+
+        // Huidige speler en banaan-houder
+        let banaanHolderId = 'jouw_speler_id';  // Zet hier je unieke ID voor de banaan-houder
+
+        // Marker voor de speler
+        let spelerMarker = L.marker([0, 0], { icon: spelerIcon }).addTo(map);
+        let banaanMarker = null;  // Marker voor de banaan, deze wordt pas toegevoegd als de speler een banaan heeft
+
+        let initialLat = 0;  // De beginpositie van de kaart
+        let initialLon = 0;
+        let isCentered = false;  // Variabele om bij te houden of de kaart al gecentreerd is
+        let distanceThreshold = 100; // 100 meter (0,1 km)
+
+        // Voeg marker voor de eigen locatie (gebruikerslocatie) toe
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                // Sla de originele locatie van de gebruiker op
+                initialLat = lat;
+                initialLon = lon;
+
+                // Update de kaart naar de werkelijke locatie van de speler
+                map.setView([lat, lon], 13);  // Focus de kaart op de speler's locatie
+
+                // Check of de huidige gebruiker de banaan-houder is
+                if (banaanHolderId === 'jouw_speler_id') {
+                    // De speler heeft de banaan, voeg het banaan icoon toe bovenop de speler
+                    if (!banaanMarker) {
+                        banaanMarker = L.marker([lat, lon], { icon: banaanIcon }).addTo(map);
+                    } else {
+                        banaanMarker.setLatLng([lat, lon]); // Update de locatie van de banaan marker
+                    }
+                } else {
+                    // De speler heeft geen banaan, zorg dat het banaan icoon wordt verwijderd
+                    if (banaanMarker) {
+                        map.removeLayer(banaanMarker);
+                        banaanMarker = null;
+                    }
+
+                    // Zichtbare popup voor de speler zonder banaan
+                    const popupContent = "<img src='speler-banaan.svg' alt='Banaan' />";
+                    spelerMarker.bindPopup(popupContent).openPopup();
+                }
+
+                // Update de speler marker locatie
+                spelerMarker.setLatLng([lat, lon]);
+
+                // Voeg de profielfoto toe bovenop de speler marker
+                let profielFotoDiv = document.createElement('div');
+                profielFotoDiv.classList.add('profile-photo');
+                profielFotoDiv.style.position = 'absolute';
+                document.getElementById('map').appendChild(profielFotoDiv);
+
+                // Voeg de profielfoto aan de div toe
+                let profielFoto = document.createElement('img');
+                profielFoto.src = 'profielfoto.jpg';  // Vervang met de juiste URL voor de profielfoto
+                profielFoto.style.width = '50px';  // Pas de grootte aan
+                profielFoto.style.height = '50px';  // Pas de grootte aan
+                profielFoto.style.borderRadius = '50%';  // Maak de foto rond
+                profielFotoDiv.appendChild(profielFoto);
+
+                // Functie om de profielfoto te positioneren
+                function updateProfilePhotoPosition() {
+                    const latLon = spelerMarker.getLatLng();  // Verkrijg de locatie van de speler
+                    const point = map.latLngToContainerPoint(latLon);  // Zet de locatie om naar schermcoördinaten
+                    profielFotoDiv.style.left = `${point.x - 25}px`;  // Verplaats de foto naar de juiste positie
+                    profielFotoDiv.style.top = `${point.y - 75}px`;  // Pas de hoogte aan zodat het boven de speler is
+                }
+
+                // Update de positie van de profielfoto bij elke kaartbeweging of locatie-updates
+                map.on('move', updateProfilePhotoPosition);
+                map.on('zoomend', updateProfilePhotoPosition);
+
+                // Eerst de profielfoto positioneren bij laden
+                updateProfilePhotoPosition();
+
+            });
+        }
+
+        // Functie voor het centreren van de kaart
+        function centerMap() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    map.setView([lat, lon], 13);
+                    initialLat = lat;  // Update de oorspronkelijke locatie
+                    initialLon = lon;
+
+                    // Verberg de centreringsknop na centreren
+                    document.getElementById('centerButton').style.display = 'none';
+                });
+            }
+        }
+
+        // Voeg een event listener toe om te detecteren wanneer de kaart is verplaatst
+        map.on('moveend', function() {
+            const center = map.getCenter();
+            const distance = map.latLngToLayerPoint([center.lat, center.lng]).distanceTo(map.latLngToLayerPoint([initialLat, initialLon]));
+
+            if (distance > distanceThreshold) {
+                // De kaart is verplaatst van de originele locatie en is verder dan 100 meter
+                document.getElementById('centerButton').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

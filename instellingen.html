@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=360, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Instellingen</title>
+    <link rel="icon" href="favicon.svg" type="image/x-icon">
+    <style>
+        @font-face {
+            font-family: 'AvenirNextRegular';
+            src: url('AvenirNext.ttc') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Avenir Next', sans-serif;
+            background-color: #f5f5f5;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background-color: #ffcc00;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            align-items: center;
+        }
+        header img {
+            width: 25px;
+            height: 25px;            
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            color: #000;
+        }
+        header img.active {
+            transform: scale(1.2);
+        }
+        footer {
+            background-color: #000;
+            color: white;
+            text-align: center;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-top: auto;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .content {
+            text-align: left;
+            margin: 0 20px;
+            flex-shrink: 0;
+        }
+        h1 {
+            font-size: 18px;
+            margin: 0;
+            font-family: 'Avenir Next', sans-serif;
+            font-weight: 500;
+            color: #000;
+        }
+        .placeholder-text {
+            font-size: 14px;
+            margin: 15px 0;
+            color: #555;
+        }
+        .settings-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            margin: 15px 0;
+            position: relative;
+        }
+        .profile-img-container {
+            margin-top: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .profile-img-container img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #ffcc00;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        label {
+            background-color: #ffcc00;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .remove-image-btn {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        @media (max-width: 360px) {
+            header img {
+                width: 20px;
+                height: 20px;
+            }
+            h1 {
+                font-size: 16px;
+            }
+            .placeholder-text {
+                font-size: 12px;
+            }
+            footer {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="banaan.html" class="icon-wrapper" id="banaan-wrapper">
+            <img id="banaan-icon" src="banaan.svg"/>
+        </a>
+        <a href="kaart.html" class="icon-wrapper" id="kaart-wrapper">
+            <img id="kaart-icon" src="kaart.svg"/>
+        </a>
+        <a href="scorebord.html" class="icon-wrapper" id="scoreboard-wrapper">
+            <img id="scoreboard-icon" src="scorebord.svg"/>
+        </a>
+        <a href="instellingen.html" class="icon-wrapper" id="instellingen-wrapper">
+            <img id="instellingen-icon" src="instellingen-active.svg"/>
+        </a>
+    </header>    
+
+    <div class="container">
+        <div class="content">
+            <h1>Instellingen</h1>
+            <p class="placeholder-text">Upload hier een foto om je profiel aan te passen. (Maximale bestandsgrootte: 5MB)</p>
+        </div>
+
+        <div class="settings-container">
+            <!-- Profielfoto uploaden -->
+            <div class="profile-img-container">
+                <img id="profileImage" src="default-profile.png" alt="Profielfoto">
+            </div>
+            <input type="file" id="profileImageUpload" accept="image/jpeg, image/png, image/gif">
+            <label for="profileImageUpload">Upload een profielfoto</label>
+            <button class="remove-image-btn" id="removeImageBtn" style="display: none;">Verwijder afbeelding</button>
+        </div>
+    </div>
+
+    <footer>© 2024 Gaan Met Die Banaan</footer>
+
+    <script>
+        // Profiel afbeelding uploaden
+        document.getElementById('profileImageUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    // Sla de afbeelding op in localStorage
+                    localStorage.setItem('profileImage', imageData);
+                    // Update de afbeelding
+                    document.getElementById('profileImage').src = imageData;
+                    document.getElementById('removeImageBtn').style.display = 'inline-block';
+                };
+                reader.readAsDataURL(file); // Leest de afbeelding als een data-URL
+            } else {
+                alert('Kies een geldig afbeeldingsbestand.');
+            }
+        });
+
+        // Profielafbeelding laden als opgeslagen
+        const profileImage = localStorage.getItem('profileImage');
+        if (profileImage) {
+            document.getElementById('profileImage').src = profileImage;
+            document.getElementById('removeImageBtn').style.display = 'inline-block';
+        }
+
+        // Verwijder de opgeslagen profielfoto
+        document.getElementById('removeImageBtn').addEventListener('click', function() {
+            localStorage.removeItem('profileImage');
+            document.getElementById('profileImage').src = 'default-profile.png';  // Zet terug naar de standaard afbeelding
+            document.getElementById('removeImageBtn').style.display = 'none'; // Verberg de verwijderknop
+        });
+    </script>
+</body>
+</html>
